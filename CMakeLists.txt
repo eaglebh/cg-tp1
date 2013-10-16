@@ -11,5 +11,5 @@ find_package(OpenGL REQUIRED)
 
 aux_source_directory(. SRC_LIST)
 
-add_executable(${PROJECT_NAME} ${SRC_LIST})
+add_executable(${PROJECT_NAME} ${SRC_LIST} shader.vert shader.frag)
 target_link_libraries(${PROJECT_NAME} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} ${GLFW_LIBRARIES} ${GLEW_LIBRARIES} X11 Xxf86vm Xrandr pthread Xi)
