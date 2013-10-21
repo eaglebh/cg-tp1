@@ -55,9 +55,9 @@ void prepareDrawWithShader() {
 
     /* Vertices of a triangle (counter-clockwise winding) */
     float data[3][3] = {
-        {  0.0, 1.0, 0.0   },
-        { -1.0, -1.0, 0.0  },
-        {  1.0, -1.0, 0.0  }
+        {  0.0, 0.5, 0.0   },
+        { -0.5, -0.5, 0.0  },
+        {  0.5, -0.5, 0.0  }
     };
 
     /*---------------------- Initialise VBO - (Note: do only once, at start of program) ---------------------*/
@@ -118,7 +118,8 @@ void prepareDrawWithShader() {
 
 }
 
-void drawWithShader() {    
+void drawWithShader() {
+
     /* Set shader program as being actively used */
     glUseProgram(shaderProgram);
 
@@ -192,110 +193,84 @@ void simpleDraw(){
 
 }
 
+
+// vertex coords array for glDrawArrays() =====================================
+// A cube has 6 sides and each side has 2 triangles, therefore, a cube consists
+// of 36 vertices (6 sides * 2 tris * 3 vertices = 36 vertices). And, each
+// vertex is 3 components (x,y,z) of floats, therefore, the size of vertex
+// array is 108 floats (36 * 3 = 108).
+GLfloat vertices1[] = { 1, 1, 1,  -1, 1, 1,  -1,-1, 1,      // v0-v1-v2 (front)
+                        -1,-1, 1,   1,-1, 1,   1, 1, 1,      // v2-v3-v0
+
+                        1, 1, 1,   1,-1, 1,   1,-1,-1,      // v0-v3-v4 (right)
+                        1,-1,-1,   1, 1,-1,   1, 1, 1,      // v4-v5-v0
+
+                        1, 1, 1,   1, 1,-1,  -1, 1,-1,      // v0-v5-v6 (top)
+                        -1, 1,-1,  -1, 1, 1,   1, 1, 1,      // v6-v1-v0
+
+                        -1, 1, 1,  -1, 1,-1,  -1,-1,-1,      // v1-v6-v7 (left)
+                        -1,-1,-1,  -1,-1, 1,  -1, 1, 1,      // v7-v2-v1
+
+                        -1,-1,-1,   1,-1,-1,   1,-1, 1,      // v7-v4-v3 (bottom)
+                        1,-1, 1,  -1,-1, 1,  -1,-1,-1,      // v3-v2-v7
+
+                        1,-1,-1,  -1,-1,-1,  -1, 1,-1,      // v4-v7-v6 (back)
+                        -1, 1,-1,   1, 1,-1,   1,-1,-1 };    // v6-v5-v4
+
+// normal array
+GLfloat normals1[]  = { 0, 0, 1,   0, 0, 1,   0, 0, 1,      // v0-v1-v2 (front)
+                        0, 0, 1,   0, 0, 1,   0, 0, 1,      // v2-v3-v0
+
+                        1, 0, 0,   1, 0, 0,   1, 0, 0,      // v0-v3-v4 (right)
+                        1, 0, 0,   1, 0, 0,   1, 0, 0,      // v4-v5-v0
+
+                        0, 1, 0,   0, 1, 0,   0, 1, 0,      // v0-v5-v6 (top)
+                        0, 1, 0,   0, 1, 0,   0, 1, 0,      // v6-v1-v0
+
+                        -1, 0, 0,  -1, 0, 0,  -1, 0, 0,      // v1-v6-v7 (left)
+                        -1, 0, 0,  -1, 0, 0,  -1, 0, 0,      // v7-v2-v1
+
+                        0,-1, 0,   0,-1, 0,   0,-1, 0,      // v7-v4-v3 (bottom)
+                        0,-1, 0,   0,-1, 0,   0,-1, 0,      // v3-v2-v7
+
+                        0, 0,-1,   0, 0,-1,   0, 0,-1,      // v4-v7-v6 (back)
+                        0, 0,-1,   0, 0,-1,   0, 0,-1 };    // v6-v5-v4
+
+// color array
+GLfloat colors1[]   = { 1, 1, 1,   1, 1, 0,   1, 0, 0,      // v0-v1-v2 (front)
+                        1, 0, 0,   1, 0, 1,   1, 1, 1,      // v2-v3-v0
+
+                        1, 1, 1,   1, 0, 1,   0, 0, 1,      // v0-v3-v4 (right)
+                        0, 0, 1,   0, 1, 1,   1, 1, 1,      // v4-v5-v0
+
+                        1, 1, 1,   0, 1, 1,   0, 1, 0,      // v0-v5-v6 (top)
+                        0, 1, 0,   1, 1, 0,   1, 1, 1,      // v6-v1-v0
+
+                        1, 1, 0,   0, 1, 0,   0, 0, 0,      // v1-v6-v7 (left)
+                        0, 0, 0,   1, 0, 0,   1, 1, 0,      // v7-v2-v1
+
+                        0, 0, 0,   0, 0, 1,   1, 0, 1,      // v7-v4-v3 (bottom)
+                        1, 0, 1,   1, 0, 0,   0, 0, 0,      // v3-v2-v7
+
+                        0, 0, 1,   0, 0, 0,   0, 1, 0,      // v4-v7-v6 (back)
+                        0, 1, 0,   0, 1, 1,   0, 0, 1 };    // v6-v5-v4
+
+
 void drawCube(float x)
 {
-    // vertex coords array for glDrawArrays() =====================================
-    // A cube has 6 sides and each side has 2 triangles, therefore, a cube consists
-    // of 36 vertices (6 sides * 2 tris * 3 vertices = 36 vertices). And, each
-    // vertex is 3 components (x,y,z) of floats, therefore, the size of vertex
-    // array is 108 floats (36 * 3 = 108).
-    GLfloat vertices[]  = { 1, 1, 1,  -1, 1, 1,  -1,-1, 1,      // v0-v1-v2 (front)
-                            -1,-1, 1,   1,-1, 1,   1, 1, 1,      // v2-v3-v0
-
-                            1, 1, 1,   1,-1, 1,   1,-1,-1,      // v0-v3-v4 (right)
-                            1,-1,-1,   1, 1,-1,   1, 1, 1,      // v4-v5-v0
-
-                            1, 1, 1,   1, 1,-1,  -1, 1,-1,      // v0-v5-v6 (top)
-                            -1, 1,-1,  -1, 1, 1,   1, 1, 1,      // v6-v1-v0
-
-                            -1, 1, 1,  -1, 1,-1,  -1,-1,-1,      // v1-v6-v7 (left)
-                            -1,-1,-1,  -1,-1, 1,  -1, 1, 1,      // v7-v2-v1
-
-                            -1,-1,-1,   1,-1,-1,   1,-1, 1,      // v7-v4-v3 (bottom)
-                            1,-1, 1,  -1,-1, 1,  -1,-1,-1,      // v3-v2-v7
-
-                            1,-1,-1,  -1,-1,-1,  -1, 1,-1,      // v4-v7-v6 (back)
-                            -1, 1,-1,   1, 1,-1,   1,-1,-1 };    // v6-v5-v4
-
-    // normal array
-    GLfloat normals[]   = { 0, 0, 1,   0, 0, 1,   0, 0, 1,      // v0-v1-v2 (front)
-                            0, 0, 1,   0, 0, 1,   0, 0, 1,      // v2-v3-v0
-
-                            1, 0, 0,   1, 0, 0,   1, 0, 0,      // v0-v3-v4 (right)
-                            1, 0, 0,   1, 0, 0,   1, 0, 0,      // v4-v5-v0
-
-                            0, 1, 0,   0, 1, 0,   0, 1, 0,      // v0-v5-v6 (top)
-                            0, 1, 0,   0, 1, 0,   0, 1, 0,      // v6-v1-v0
-
-                            -1, 0, 0,  -1, 0, 0,  -1, 0, 0,      // v1-v6-v7 (left)
-                            -1, 0, 0,  -1, 0, 0,  -1, 0, 0,      // v7-v2-v1
-
-                            0,-1, 0,   0,-1, 0,   0,-1, 0,      // v7-v4-v3 (bottom)
-                            0,-1, 0,   0,-1, 0,   0,-1, 0,      // v3-v2-v7
-
-                            0, 0,-1,   0, 0,-1,   0, 0,-1,      // v4-v7-v6 (back)
-                            0, 0,-1,   0, 0,-1,   0, 0,-1 };    // v6-v5-v4
-
-    // color array
-    GLfloat colors[]    = { 1, 1, 1,   1, 1, 0,   1, 0, 0,      // v0-v1-v2 (front)
-                            1, 0, 0,   1, 0, 1,   1, 1, 1,      // v2-v3-v0
-
-                            1, 1, 1,   1, 0, 1,   0, 0, 1,      // v0-v3-v4 (right)
-                            0, 0, 1,   0, 1, 1,   1, 1, 1,      // v4-v5-v0
-
-                            1, 1, 1,   0, 1, 1,   0, 1, 0,      // v0-v5-v6 (top)
-                            0, 1, 0,   1, 1, 0,   1, 1, 1,      // v6-v1-v0
-
-                            1, 1, 0,   0, 1, 0,   0, 0, 0,      // v1-v6-v7 (left)
-                            0, 0, 0,   1, 0, 0,   1, 1, 0,      // v7-v2-v1
-
-                            0, 0, 0,   0, 0, 1,   1, 0, 1,      // v7-v4-v3 (bottom)
-                            1, 0, 1,   1, 0, 0,   0, 0, 0,      // v3-v2-v7
-
-                            0, 0, 1,   0, 0, 0,   0, 1, 0,      // v4-v7-v6 (back)
-                            0, 1, 0,   0, 1, 1,   0, 0, 1 };    // v6-v5-v4
-
-
     glEnableClientState(GL_NORMAL_ARRAY);
     glEnableClientState(GL_COLOR_ARRAY);
     glEnableClientState(GL_VERTEX_ARRAY);
-    //    glNormalPointer(GL_FLOAT, 0, normals1);
-    //    glColorPointer(3, GL_FLOAT, 0, colors1);
-    //    glVertexPointer(3, GL_FLOAT, 0, g_vertex_buffer_data);
-
-    GLfloat vertexData[] = {0, 2, 0,  -2, -2, 0,   2, -2, 0};
-    GLubyte indexData[] = {0, 1, 2};
-
-    GLuint myVBO = 0;
-    GLuint myIndices;
-
-    glGenBuffers(1, &myVBO);
-    glGenBuffers(1, &myIndices);
-
-    glBindBuffer(GL_ARRAY_BUFFER, myVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, myIndices);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexData), indexData, GL_STATIC_DRAW);
-
+    glNormalPointer(GL_FLOAT, 0, normals1);
+    glColorPointer(3, GL_FLOAT, 0, colors1);
+    glVertexPointer(3, GL_FLOAT, 0, vertices1);
 
     glPushMatrix();
-    glTranslatef(-0.2, 0, 0);                  // move to upper-right corner
-    glScalef(0.2,0.2,0.2);
-
-    //    glDrawArrays(GL_TRIANGLES, 0, 36);
-
-
     glLoadIdentity();
-    glColor3f(1, 0, 0);
+    //glTranslatef(2, 2, 0);                  // move to upper-right corner
+    glScalef(10,10,10);
 
-    glBindBuffer(GL_ARRAY_BUFFER, myVBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, myIndices);
-
-    glEnableVertexAttribArray(0);                                               //ENABLE VERTEX POSITION
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);      // VERTEX POSITION POINTER
-
-    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_BYTE, 0);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
 
     glPopMatrix();
 
@@ -310,31 +285,31 @@ void drawCube(float x)
 ///////////////////////////////////////////////////////////////////////////////
 void initGL()
 {
-    //    glShadeModel(GL_SMOOTH);                    // shading mathod: GL_SMOOTH or GL_FLAT
-    //    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);      // 4-byte pixel alignment
+    glShadeModel(GL_SMOOTH);                    // shading mathod: GL_SMOOTH or GL_FLAT
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);      // 4-byte pixel alignment
 
     // enable /disable features
-    //    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-    //glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-    //glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
-    //    glEnable(GL_DEPTH_TEST);
-    //    glEnable(GL_LIGHTING);
-    //    glEnable(GL_TEXTURE_2D);
-    //    glEnable(GL_CULL_FACE);
+    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+    glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_LIGHTING);
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_CULL_FACE);
 
     // track material ambient and diffuse from surface color, call it before glEnable(GL_COLOR_MATERIAL)
-    //    glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-    //    glEnable(GL_COLOR_MATERIAL);
+    glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+    glEnable(GL_COLOR_MATERIAL);
 
-    //    glClearColor(0, 0, 0, 0);                   // background color
-    //    glClearStencil(0);                          // clear stencil buffer
-    //    glClearDepth(1.0f);                         // 0 is near, 1 is far
-    //    glDepthFunc(GL_LEQUAL);
+    glClearColor(0, 0, 0, 0);                   // background color
+    glClearStencil(0);                          // clear stencil buffer
+    glClearDepth(1.0f);                         // 0 is near, 1 is far
+    glDepthFunc(GL_LEQUAL);
 }
 
 void loadData()
 {
-    GLfloat vertexData[] = {0, 2, 0,  -2, -2, 0,   2, -2, 0};
+    GLfloat vertexData[] = {0, 0.5, 0,  0.5, -0.5, 0,   -0.5, -0.5, 0};
     GLubyte indexData[] = {0, 1, 2};
 
     glGenBuffers(1, &myVBO);
@@ -350,8 +325,9 @@ void loadData()
 void drawScene()
 {
     glLoadIdentity();
-    glTranslatef(0, 0, -10);
+    glTranslatef(0, 0, 0);
     //glRotatef(rotZ, 0, 0, 1);
+    glScalef(0.2f,0.2f,0.2f);
 
     glColor3f(1, 0, 0);
 
@@ -406,18 +382,8 @@ void AppManager::start(int *argcp, char **argv) throw (Exception) {
         throw Exception();
     }
 
-    vertexSource = filetobuf("shader.vert");
-    fragmentSource = filetobuf("shader.frag");
-
-    if(!printou) {
-    cout << "v1\n" << vertex_shader << endl;
-    cout << "v2\n" << vertexSource << endl;
-    cout << "f2\n" << fragment_shader << endl;
-    cout << "f2\n" << fragmentSource << endl;
-    printou = true;
-    }
-
-    prepareDrawWithShader();
+    //loadData();
+        prepareDrawWithShader();
 
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window)) {
@@ -459,9 +425,7 @@ void AppManager::start(int *argcp, char **argv) throw (Exception) {
         drawWithShader();
         //simpleDraw();
 
-        //loadData();
         //drawScene();
-
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
