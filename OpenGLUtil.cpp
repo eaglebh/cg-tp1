@@ -11,7 +11,7 @@ void OpenGLUtil::prepareGraphInfo(Graphical::GraphicalInfo &gi)
 {
     float *verts = gi.vertices;
     float *rgb = gi.colors;
-    float *idxs = gi.indices;
+    const short unsigned int *idxs = gi.indices;
     unsigned int shaderProgram = gi.shaderProgram;
     unsigned int vboVertices = gi.vboVertices;
     unsigned int vboColors = gi.vboColors;
@@ -69,9 +69,6 @@ void OpenGLUtil::prepareGraphInfo(Graphical::GraphicalInfo &gi)
 
 void OpenGLUtil::renderGraphInfo(Graphical::GraphicalInfo &gi)
 {
-    float *verts = gi.vertices;
-    float *rgb = gi.colors;
-    float *idxs = gi.indices;
     unsigned int &shaderProgram = gi.shaderProgram;
     unsigned int &vboVertices = gi.vboVertices;
     unsigned int &vboColors = gi.vboColors;

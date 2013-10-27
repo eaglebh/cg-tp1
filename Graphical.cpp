@@ -84,7 +84,7 @@ void Graphical::setColors(const string name, float *colors)
     graphicalObjects[name].colors = colors;
 }
 
-void Graphical::setIndices(const string name, float *indices)
+void Graphical::setIndices(const string name, const short unsigned int *indices)
 {
     graphicalObjects[name].indices = indices;
 }

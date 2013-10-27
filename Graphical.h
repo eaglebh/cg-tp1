@@ -19,7 +19,7 @@ private:
     struct GraphicalInfo {
         float *vertices;
         float *colors;
-        float *indices;
+        const short unsigned int *indices;
         unsigned int shaderProgram;
         unsigned int vboVertices;
         unsigned int vboColors;
@@ -49,7 +49,7 @@ public:
     const TransformMatrix getModel();
     static void setVertices(const string name, float *vertices);
     static void setColors(const string name, float *colors);
-    static void setIndices(const string name, float *indices);
+    static void setIndices(const string name, const unsigned short *indices);
 
     void prepareForDraw();
     void draw();

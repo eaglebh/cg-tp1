@@ -292,9 +292,6 @@ void simpleDraw(){
     //        glm::mat4 MVP = Projection * View * Model;
     //        glUniformMatrix4fv(ProjectionModelviewMatrix_Loc, 1, GL_FALSE, glm::value_ptr(MVP));
     //    }
-
-
-
 }
 
 void loadData()
@@ -310,6 +307,29 @@ void loadData()
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, myIndices);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * sizeof(GLubyte), indexData, GL_STATIC_DRAW);
+}
+
+void prepareScene() {
+    Graphical triangle(0);
+    triangle.setVertices("triangle", verts);
+    triangle.setColors("triangle", rgb);
+    triangle.setIndices("triangle", idxs);
+    Position p0;
+    p0.setX(-0.5f)->setY(0.0f)->setZ(0.0f);
+    triangle.setRelativePosition(p0);
+    scene.addObject(triangle);
+
+    for (std::set<Graphical>::iterator it=scene.getObjectsIteratorBegin(); it!=scene.getObjectsIteratorEnd(); ++it) {
+        Graphical graphical = *it;
+        graphical.prepareForDraw();
+    }
+}
+
+void drawScene() {
+    for (std::set<Graphical>::iterator it=scene.getObjectsIteratorBegin(); it!=scene.getObjectsIteratorEnd(); ++it) {
+        Graphical graphical = *it;
+        graphical.draw();
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
