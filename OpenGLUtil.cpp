@@ -12,11 +12,11 @@ void OpenGLUtil::prepareGraphInfo(Graphical::GraphicalInfo &gi)
     float *verts = gi.vertices;
     float *rgb = gi.colors;
     const short unsigned int *idxs = gi.indices;
-    unsigned int shaderProgram = gi.shaderProgram;
-    unsigned int vboVertices = gi.vboVertices;
-    unsigned int vboColors = gi.vboColors;
-    unsigned int vao = gi.vao;
-    unsigned int ebo = gi.ebo;
+    unsigned int &shaderProgram = gi.shaderProgram;
+    unsigned int &vboVertices = gi.vboVertices;
+    unsigned int &vboColors = gi.vboColors;
+    unsigned int &vao = gi.vao;
+    unsigned int &ebo = gi.ebo;
 
     glGenBuffers (1, &vboVertices);
     glBindBuffer (GL_ARRAY_BUFFER, vboVertices);
@@ -75,15 +75,15 @@ void OpenGLUtil::renderGraphInfo(Graphical::GraphicalInfo &gi)
     unsigned int &vao = gi.vao;
     unsigned int &ebo = gi.ebo;
 
-    float angle = glfwGetTime() * 45;  // 45° per second
-    glm::vec3 axis_z(0, 0, 1);
-    glm::mat4 anim = glm::rotate(glm::mat4(1.0f), angle, axis_z);
+//    float angle = glfwGetTime() * 45;  // 45° per second
+//    glm::vec3 axis_z(0, 0, 1);
+//    glm::mat4 anim = glm::rotate(glm::mat4(1.0f), angle, axis_z);
 
     glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(-1.0, 0.0, -4.0));
     glm::mat4 view = glm::lookAt(glm::vec3(0.0, 2.0, 0.0), glm::vec3(0.0, 0.0, -4.0), glm::vec3(0.0, 1.0, 0.0));
     glm::mat4 projection = glm::perspective(45.0f, 4.0f/3.0f, 0.1f, 10.0f);
 
-    glm::mat4 mvp = projection * view * model * anim;
+    glm::mat4 mvp = projection * view * model;
 
     glUseProgram (shaderProgram);
     glUniformMatrix4fv(Graphical::uniformMvp, 1, GL_FALSE, glm::value_ptr(mvp));
@@ -117,12 +117,12 @@ void OpenGLUtil::renderGraphInfo(Graphical::GraphicalInfo &gi)
     //    int size;  glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, NULL);
 
-    // draw points 0-3 from the currently bound VAO with current in-use shader
-    model = glm::translate(glm::mat4(1.0f), glm::vec3(1.0, 0.0, -4.0));
-    anim = glm::rotate(glm::mat4(1.0f), -angle, axis_z);
-    mvp = projection * view * model * anim;
-    glUniformMatrix4fv(Graphical::uniformMvp, 1, GL_FALSE, glm::value_ptr(mvp));
-    glDrawArrays (GL_TRIANGLES, 0, 3);
+//    // draw points 0-3 from the currently bound VAO with current in-use shader
+//    model = glm::translate(glm::mat4(1.0f), glm::vec3(1.0, 0.0, -4.0));
+//    anim = glm::rotate(glm::mat4(1.0f), -angle, axis_z);
+//    mvp = projection * view * model * anim;
+//    glUniformMatrix4fv(Graphical::uniformMvp, 1, GL_FALSE, glm::value_ptr(mvp));
+//    glDrawArrays (GL_TRIANGLES, 0, 3);
 
     glDisableVertexAttribArray(Graphical::attributeCoord3d);
     glDisableVertexAttribArray(Graphical::attributeVColor);

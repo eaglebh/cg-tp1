@@ -10,8 +10,9 @@ unsigned int Graphical::attributeCoord3d = 0;
 unsigned int Graphical::attributeVColor = 1;
 unsigned int Graphical::uniformMvp = 0;
 
-Graphical::Graphical(long id, Graphical *parent) :
+Graphical::Graphical(long id, string type, Graphical *parent) :
     id(id),
+    type(type),
     parent(parent)
 {
 

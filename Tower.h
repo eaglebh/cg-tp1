@@ -6,6 +6,8 @@
 
 class Tower : public HasGraphicalRepresentation
 {
+private:
+    const static char *TOWER_TYPE;
 public:
     Tower(long id);
 };

@@ -12,6 +12,7 @@ class Graphical
     friend class OpenGLUtil;
 private:
     long id;
+    string type;
     Graphical *parent;
     Position localPosition;
     float forwardspeed;
@@ -34,7 +35,7 @@ private:
 public:    
     const static float ROTATION_SPEED = 0.0028;
 
-    Graphical(long id, Graphical *parent = NULL);
+    Graphical(long id, string type, Graphical *parent = NULL);
     void setParent(Graphical *parent);
     Position getPosition();
     Position setRelativePosition(Position position);

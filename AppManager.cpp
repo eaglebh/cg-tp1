@@ -107,7 +107,7 @@ void prepareDrawWithShader() {
     glLinkProgram(shaderProgram);
     /*-------------------------------------------------------------------------------------------------------*/
 
-    Graphical triangle(0);
+    Graphical triangle(0, "TRIANGLE");
     Position p0;
     p0.setX(-0.5f)->setY(0.0f)->setZ(0.0f);
     triangle.setRelativePosition(p0);
@@ -222,7 +222,7 @@ void simpleLoad(){
         fprintf(stderr, "Could not bind uniform %s\n", uniform_name);
     }
 
-    Graphical triangle(0);
+    Graphical triangle(0, "TRIANGLE");
     Position p0;
     p0.setX(-0.5f)->setY(0.0f)->setZ(0.0f);
     triangle.setRelativePosition(p0);
@@ -310,7 +310,7 @@ void loadData()
 }
 
 void prepareScene() {
-    Graphical triangle(0);
+    Graphical triangle(0, "TRIANGLE");
     triangle.setVertices("triangle", verts);
     triangle.setColors("triangle", rgb);
     triangle.setIndices("triangle", idxs);
@@ -326,6 +326,7 @@ void prepareScene() {
 }
 
 void drawScene() {
+    glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     for (std::set<Graphical>::iterator it=scene.getObjectsIteratorBegin(); it!=scene.getObjectsIteratorEnd(); ++it) {
         Graphical graphical = *it;
         graphical.draw();
@@ -409,7 +410,8 @@ void AppManager::start(int *argcp, char **argv) throw (Exception) {
         throw Exception();
     }
 
-    simpleLoad();
+    prepareScene();
+//    simpleLoad();
     //prepareDrawWithShader();
 
     /* Render here */
@@ -421,7 +423,8 @@ void AppManager::start(int *argcp, char **argv) throw (Exception) {
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window)) {
 
-        simpleDraw();
+        drawScene();
+//        simpleDraw();
         //        drawWithShader();
 
         /* Swap front and back buffers */

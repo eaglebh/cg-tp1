@@ -1,7 +1,7 @@
 #include "HasGraphicalRepresentation.h"
 
-HasGraphicalRepresentation::HasGraphicalRepresentation(long id):
-    graphical(id)
+HasGraphicalRepresentation::HasGraphicalRepresentation(long id, string type):
+    graphical(id, type)
 {
 }
 

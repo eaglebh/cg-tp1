@@ -5,12 +5,12 @@
 #include "../Scene.h"
 
 TEST(GetPosition, NoData) {
-    Graphical graphical1(1);
+    Graphical graphical1(1, "TEST");
     Position p1;
     p1.setX(1.0f)->setY(1.0f)->setZ(1.0f);
     graphical1.setRelativePosition(p1);
 
-    Graphical graphical1_1(11, &graphical1);
+    Graphical graphical1_1(11, "TEST", &graphical1);
     Position p1_1;
     p1_1.setX(0.2f)->setY(0.3f)->setZ(0.4f);
     graphical1_1.setRelativePosition(p1_1);
@@ -25,7 +25,7 @@ TEST(GetPosition, NoData) {
 }
 
 TEST(GetPosition, Translate) {
-    Graphical graphical1(1);
+    Graphical graphical1(1, "TEST");
     Position p1;
     p1.setX(1.0f)->setY(1.0f)->setZ(1.0f);
     graphical1.setRelativePosition(p1);
@@ -53,24 +53,24 @@ TEST(GetPosition, Translate) {
 
 TEST(Scene, Objects) {
     Scene scene;
-    Graphical graphical0(0);
+    Graphical graphical0(0, "TEST");
     Position p0;
     p0.setX(-0.5f)->setY(0.0f)->setZ(0.0f);
     graphical0.setRelativePosition(p0);
-    Graphical graphical1(1);
+    Graphical graphical1(1, "TEST");
     Position p1;
     p1.setX(0.0f)->setY(0.0f)->setZ(0.0f);
     graphical1.setRelativePosition(p1);
-    Graphical graphical1_1(11, &graphical1);
+    Graphical graphical1_1(11, "TEST", &graphical1);
     Position p1_1;
     p1_1.setX(0.2f)->setY(0.0f)->setZ(0.0f);
     graphical1_1.setRelativePosition(p1_1);
-    Graphical graphical2(2);
+    Graphical graphical2(2, "TEST");
     Position p2;
     p2.setX(0.7f)->setY(0.0f)->setZ(0.0f);
     graphical2.setRelativePosition(p2);
 
-    Graphical graphical00(0);
+    Graphical graphical00(0, "TEST");
     graphical00.setRelativePosition(p2);
 
     scene.addObject(graphical0);

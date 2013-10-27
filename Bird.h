@@ -6,7 +6,8 @@
 class Bird : public HasGraphicalRepresentation
 {
 private:
-    const static float MIN_SPEED = 0;    
+    const static float MIN_SPEED = 0;
+    const static char *BIRD_TYPE;
     float wingsMovementSpeed;
 
 protected:

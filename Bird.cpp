@@ -1,14 +1,16 @@
 #include "Bird.h"
 
+const char *Bird::BIRD_TYPE = "BIRD";
+
 Bird::Bird(long id) :
-    HasGraphicalRepresentation(id),
+    HasGraphicalRepresentation(id, BIRD_TYPE),
     // velocidade maxima do falcao peregrino http://en.wikipedia.org/wiki/Peregrine_Falcon
     maxSpeed(57)
 {
 }
 
 Bird::Bird(long id, float maxSpeed):
-    HasGraphicalRepresentation(id),
+    HasGraphicalRepresentation(id, BIRD_TYPE),
     maxSpeed(maxSpeed)
 {
 }

@@ -6,7 +6,7 @@
 class HasGraphicalRepresentation
 {
 public:
-    HasGraphicalRepresentation(long id);
+    HasGraphicalRepresentation(long id, string type);
     void setPosition(Position position);
 
 protected:
