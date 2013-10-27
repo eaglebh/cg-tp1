@@ -23,23 +23,6 @@ AppManager::AppManager(unsigned short width, unsigned short height) :
     windowWidth(width), windowHeight(height) {
 }
 
-string filetobuf(const char* filename) {
-    ifstream ifs(filename);
-    string line;
-    stringstream ss;
-
-    if (ifs.is_open())
-    {
-        while ( getline (ifs,line) )
-        {
-            ss << line << endl;
-        }
-        ifs.close();
-    }
-
-    return ss.str();
-}
-
 /* Create a variable to hold the VBO identifier */
 GLuint triangleVBO;
 
@@ -90,8 +73,8 @@ void prepareDrawWithShader() {
 
     /*--------------------- Load Vertex and Fragment shaders from files and compile them --------------------*/
     /* Read our shaders into the appropriate buffers */
-    vertexSource = filetobuf("shader.vert");
-    fragmentSource = filetobuf("shader.frag");
+    vertexSource = Util::filetobuf("shader.vert");
+    fragmentSource = Util::filetobuf("shader.frag");
 
     /* Assign our handles a "name" to new shader objects */
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -164,49 +147,53 @@ void drawWithShader() {
     glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
-float points[] = {
-    0.0f,  0.5f,  0.0f,
-    0.5f, -0.5f,  0.0f,
-    -0.5f, -0.5f,  0.0f
+float verts[] = {
+    0.0f,  0.433f,  0.0f,
+    0.5f, -0.433f,  0.0f,
+    -0.5f, -0.433f,  0.0f
 };
 
-float colors[] = {
-    1.0f, 0.0f,  0.0f,
-    1.0f, 0.0f,  0.0f,
-    1.0f, 0.0f,  0.0f
+float rgb[] = {
+    1.0f, 1.0f,  0.0f,
+    1.0f, 1.0f,  0.0f,
+    1.0f, 1.0f,  0.0f
+};
+
+static const GLushort idxs[] =
+{
+    0, 1, 2
 };
 
 bool printou = false;
 
-unsigned int shader_programme = 0;
-GLuint vbo_vertices = 0;
-GLuint vbo_colors = 0;
+GLuint vboVertices = 0;
+GLuint vboColors = 0;
 GLuint vao = 0;
-GLint attribute_coord3d, attribute_v_color;
-GLint uniform_mvp;
+GLuint ebo = 0;
+GLint attributeCoord3d = 0, attributeVColor = 1;
+GLint uniformMvp;
 
 void simpleLoad(){
-    //const unsigned int shaderAttribute = 0;
-
-    glGenBuffers (1, &vbo_vertices);
-    glBindBuffer (GL_ARRAY_BUFFER, vbo_vertices);
-    glBufferData (GL_ARRAY_BUFFER, 9 * sizeof (float), points, GL_STATIC_DRAW);
-    //glVertexAttribPointer(shaderAttribute, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    //glEnableVertexAttribArray(shaderAttribute);
+    glGenBuffers (1, &vboVertices);
+    glBindBuffer (GL_ARRAY_BUFFER, vboVertices);
+    glBufferData (GL_ARRAY_BUFFER, 9 * sizeof (float), verts, GL_STATIC_DRAW);
 
     glGenVertexArrays (1, &vao);
     glBindVertexArray (vao);
     glEnableVertexAttribArray (0);
-    glBindBuffer (GL_ARRAY_BUFFER, vbo_vertices);
+    glBindBuffer (GL_ARRAY_BUFFER, vboVertices);
     glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, 0, (GLubyte*)NULL);
 
-    glGenBuffers (1, &vbo_colors);
-    glBindBuffer (GL_ARRAY_BUFFER, vbo_colors);
-    glBufferData (GL_ARRAY_BUFFER, 9 * sizeof (float), colors, GL_STATIC_DRAW);
+    glGenBuffers (1, &vboColors);
+    glBindBuffer (GL_ARRAY_BUFFER, vboColors);
+    glBufferData (GL_ARRAY_BUFFER, 9 * sizeof (float), rgb, GL_STATIC_DRAW);
 
+    glGenBuffers(1, &ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * sizeof(GLushort), idxs, GL_STATIC_DRAW);
 
-    string vertexSource = filetobuf("shader.vert");
-    string fragmentSource = filetobuf("shader.frag");
+    string vertexSource = Util::filetobuf("shader.vert");
+    string fragmentSource = Util::filetobuf("shader.frag");
 
     const GLchar* vertexSourcep = vertexSource.c_str();
     const GLchar* fragmentSourcep = fragmentSource.c_str();
@@ -214,36 +201,26 @@ void simpleLoad(){
     unsigned int vs = glCreateShader (GL_VERTEX_SHADER);
     glShaderSource (vs, 1, &vertexSourcep, NULL);
     glCompileShader (vs);
+
     unsigned int fs = glCreateShader (GL_FRAGMENT_SHADER);
     glShaderSource (fs, 1, &fragmentSourcep, NULL);
     glCompileShader (fs);
 
-    shader_programme = glCreateProgram();
-    glAttachShader (shader_programme, fs);
-    glAttachShader (shader_programme, vs);
+    shaderProgram = glCreateProgram();
+    glAttachShader (shaderProgram, vs);
+    glAttachShader (shaderProgram, fs);
 
-    //glBindAttribLocation(shader_programme, shaderAttribute, "vp");
+    glBindAttribLocation(shaderProgram, 0, "coord3d");
+    glBindAttribLocation(shaderProgram, 1, "v_color");
 
-    glLinkProgram (shader_programme);
+    glLinkProgram (shaderProgram);
 
-    const char* attribute_name;
-    attribute_name = "coord3d";
-    attribute_coord3d = glGetAttribLocation(shader_programme, attribute_name);
-    if (attribute_coord3d == -1) {
-        fprintf(stderr, "Could not bind attribute %s\n", attribute_name);
-    }
-    attribute_name = "v_color";
-    attribute_v_color = glGetAttribLocation(shader_programme, attribute_name);
-    if (attribute_v_color == -1) {
-        fprintf(stderr, "Could not bind attribute %s\n", attribute_name);
-    }
     const char* uniform_name;
     uniform_name = "MVP";
-    uniform_mvp = glGetUniformLocation(shader_programme, uniform_name);
-    if (uniform_mvp == -1) {
+    uniformMvp = glGetUniformLocation(shaderProgram, uniform_name);
+    if (uniformMvp == -1) {
         fprintf(stderr, "Could not bind uniform %s\n", uniform_name);
     }
-
 
     Graphical triangle(0);
     Position p0;
@@ -257,24 +234,24 @@ void simpleDraw(){
     // wipe the drawing surface clear
     glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-   float angle = glfwGetTime() * 45;  // 45° per second
+    float angle = glfwGetTime() * 45;  // 45° per second
     glm::vec3 axis_z(0, 0, 1);
     glm::mat4 anim = glm::rotate(glm::mat4(1.0f), angle, axis_z);
 
-    glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0, 0.0, -4.0));
+    glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(-1.0, 0.0, -4.0));
     glm::mat4 view = glm::lookAt(glm::vec3(0.0, 2.0, 0.0), glm::vec3(0.0, 0.0, -4.0), glm::vec3(0.0, 1.0, 0.0));
     glm::mat4 projection = glm::perspective(45.0f, 4.0f/3.0f, 0.1f, 10.0f);
 
     glm::mat4 mvp = projection * view * model * anim;
 
-    glUseProgram (shader_programme);
-    glUniformMatrix4fv(uniform_mvp, 1, GL_FALSE, glm::value_ptr(mvp));
+    glUseProgram (shaderProgram);
+    glUniformMatrix4fv(uniformMvp, 1, GL_FALSE, glm::value_ptr(mvp));
 
-    glEnableVertexAttribArray(attribute_coord3d);
+    glEnableVertexAttribArray(attributeCoord3d);
     // Describe our vertices array to OpenGL (it can't guess its format automatically)
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
+    glBindBuffer(GL_ARRAY_BUFFER, vboVertices);
     glVertexAttribPointer(
-                attribute_coord3d, // attribute
+                attributeCoord3d, // attribute
                 3,                 // number of elements per vertex, here (x,y,z)
                 GL_FLOAT,          // the type of each element
                 GL_FALSE,          // take our values as-is
@@ -282,10 +259,10 @@ void simpleDraw(){
                 0                  // offset of first element
                 );
 
-    glEnableVertexAttribArray(attribute_v_color);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_colors);
+    glEnableVertexAttribArray(attributeVColor);
+    glBindBuffer(GL_ARRAY_BUFFER, vboColors);
     glVertexAttribPointer(
-                attribute_v_color, // attribute
+                attributeVColor, // attribute
                 3,                 // number of elements per vertex, here (R,G,B)
                 GL_FLOAT,          // the type of each element
                 GL_FALSE,          // take our values as-is
@@ -295,14 +272,19 @@ void simpleDraw(){
 
     /* Push each element in buffer_vertices to the vertex shader */
     glBindVertexArray (vao);
-//    int size;  glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
-//    glDrawElements(GL_TRIANGLES, size/sizeof(GLushort), GL_UNSIGNED_SHORT, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    //    int size;  glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
+    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, NULL);
 
     // draw points 0-3 from the currently bound VAO with current in-use shader
+    model = glm::translate(glm::mat4(1.0f), glm::vec3(1.0, 0.0, -4.0));
+    anim = glm::rotate(glm::mat4(1.0f), -angle, axis_z);
+    mvp = projection * view * model * anim;
+    glUniformMatrix4fv(uniformMvp, 1, GL_FALSE, glm::value_ptr(mvp));
     glDrawArrays (GL_TRIANGLES, 0, 3);
 
-    glDisableVertexAttribArray(attribute_coord3d);
-    glDisableVertexAttribArray(attribute_v_color);
+    glDisableVertexAttribArray(attributeCoord3d);
+    glDisableVertexAttribArray(attributeVColor);
     //    for (std::set<Graphical>::iterator it=scene.getObjectsIteratorBegin(); it!=scene.getObjectsIteratorEnd(); ++it) {
     //        //std::cout << "pos= " << ((Graphical)*it).getPosition().toString() << endl;
     //        glm::mat4 Model = Util::transformMatrixToGlmMat4(((Graphical)*it).getModel());
@@ -358,6 +340,12 @@ void initGL()
     glDepthFunc(GL_LEQUAL);
 }
 
+void AppManager::windowResize(GLFWwindow* window, int width, int height)
+{
+    glViewport(0, 0, width, height);
+}
+
+
 void AppManager::start(int *argcp, char **argv) throw (Exception) {
 
     GLFWwindow* window;
@@ -367,8 +355,8 @@ void AppManager::start(int *argcp, char **argv) throw (Exception) {
         throw new Exception;
 
     //glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
-    //    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    //    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
     //    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
     const GLFWvidmode *videoMode = glfwGetVideoMode(glfwGetPrimaryMonitor());
@@ -378,7 +366,7 @@ void AppManager::start(int *argcp, char **argv) throw (Exception) {
     initGL();
 
     // cria janela
-    window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
+    window = glfwCreateWindow(windowWidth, windowHeight, "CG-Tp1", NULL, NULL);
     if (!window) {
         glfwTerminate();
         throw new Exception;
@@ -390,6 +378,8 @@ void AppManager::start(int *argcp, char **argv) throw (Exception) {
     glfwMakeContextCurrent(window);
 
     glfwSetKeyCallback(window, &AppManager::key_callback);
+
+    glfwSetWindowSizeCallback(window, windowResize);
 
     // inicializa GLEW
     //glewExperimental = GL_TRUE;

@@ -31,6 +31,8 @@ public:
     Util();
     static glm::vec3 positionToGlmVec3(Position position);
     static glm::mat4 transformMatrixToGlmMat4(TransformMatrix transformMatrix);
+    static string filetobuf(const char* filename);
+
 };
 
 #endif // UTIL_H

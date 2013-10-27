@@ -2,7 +2,6 @@
 #define BIRD_H
 
 #include "HasGraphicalRepresentation.h"
-#include "Util.h"
 
 class Bird : public HasGraphicalRepresentation
 {
