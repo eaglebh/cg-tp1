@@ -1,9 +1,13 @@
 #include "AppManager.h"
 
+#include "Scene.h"
+
+
 #include <string>
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <glm/gtc/type_ptr.hpp>
 
 using namespace std;
 
@@ -47,6 +51,10 @@ string vertexSource, fragmentSource;
 
 /* These are handles used to reference the shaders */
 GLuint vertexShader, fragmentShader;
+
+
+Scene scene;
+int ProjectionModelviewMatrix_Loc;
 
 void prepareDrawWithShader() {
     const unsigned int shaderAttribute = 0;
@@ -110,13 +118,24 @@ void prepareDrawWithShader() {
 
     /* Bind attribute index 0 (shaderAttribute) to in_Position*/
     /* "in_Position" will represent "data" array's contents in the vertex shader */
-    glBindAttribLocation(shaderProgram, shaderAttribute, "in_Position");
+    glBindAttribLocation(shaderProgram, shaderAttribute, "vp");
 
     /* Link shader program*/
     glLinkProgram(shaderProgram);
     /*-------------------------------------------------------------------------------------------------------*/
 
+    Graphical triangle(0);
+    Position p0;
+    p0.setX(-0.5f)->setY(0.0f)->setZ(0.0f);
+    triangle.setRelativePosition(p0);
+    scene.addObject(triangle);
+
+    ProjectionModelviewMatrix_Loc=glGetUniformLocation(shaderProgram, "MVP");
+
 }
+
+glm::mat4 Projection = glm::perspective(45.0f, 4.0f / 3.0f, 0.1f, 100.f);
+glm::mat4 View = glm::lookAt(glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 0.0, -4.0), glm::vec3(0.0, 1.0, 0.0));
 
 void drawWithShader() {
 
@@ -126,8 +145,18 @@ void drawWithShader() {
     /* Set background colour to BLACK */
     glClearColor(0.0, 0.0, 0.2, 1.0);
 
-    /* Clear background with BLACK colour */
-    glClear(GL_COLOR_BUFFER_BIT);
+    //Clear all the buffers
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+    for (std::set<Graphical>::iterator it=scene.getObjectsIteratorBegin(); it!=scene.getObjectsIteratorEnd(); ++it) {
+        //std::cout << "pos= " << ((Graphical)*it).getPosition().toString() << endl;
+        glm::mat4 Model = Util::transformMatrixToGlmMat4(((Graphical)*it).getModel());
+
+        glm::mat4 MVP = Projection * View * Model;
+        glUniformMatrix4fv(ProjectionModelviewMatrix_Loc, 1, GL_FALSE, glm::value_ptr(MVP));
+    }
+
+
 
     /* Actually draw the triangle, giving the number of vertices provided by invoke glDrawArrays
        while telling that our data is a triangle and we want to draw 0-3 vertexes
@@ -141,32 +170,43 @@ float points[] = {
     -0.5f, -0.5f,  0.0f
 };
 
-const char* vertex_shader =
-        "#version 130\n"
-        "in vec3 vp;\n"
-        "void main () {\n"
-        "  gl_Position = vec4 (vp, 1.0);\n"
-        "}";
+float colors[] = {
+    1.0f, 0.0f,  0.0f,
+    1.0f, 0.0f,  0.0f,
+    1.0f, 0.0f,  0.0f
+};
 
-const char* fragment_shader =
-        "#version 130\n"
-        "out vec4 frag_colour;\n"
-        "void main () {\n"
-        "  frag_colour = vec4 (0.5, 0.0, 0.5, 1.0);\n"
-        "}";
 bool printou = false;
-void simpleDraw(){
-    GLuint vbo = 0;
-    glGenBuffers (1, &vbo);
-    glBindBuffer (GL_ARRAY_BUFFER, vbo);
-    glBufferData (GL_ARRAY_BUFFER, 9 * sizeof (float), points, GL_STATIC_DRAW);
 
-    GLuint vao = 0;
+unsigned int shader_programme = 0;
+GLuint vbo_vertices = 0;
+GLuint vbo_colors = 0;
+GLuint vao = 0;
+GLint attribute_coord3d, attribute_v_color;
+GLint uniform_mvp;
+
+void simpleLoad(){
+    //const unsigned int shaderAttribute = 0;
+
+    glGenBuffers (1, &vbo_vertices);
+    glBindBuffer (GL_ARRAY_BUFFER, vbo_vertices);
+    glBufferData (GL_ARRAY_BUFFER, 9 * sizeof (float), points, GL_STATIC_DRAW);
+    //glVertexAttribPointer(shaderAttribute, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    //glEnableVertexAttribArray(shaderAttribute);
+
     glGenVertexArrays (1, &vao);
     glBindVertexArray (vao);
     glEnableVertexAttribArray (0);
-    glBindBuffer (GL_ARRAY_BUFFER, vbo);
+    glBindBuffer (GL_ARRAY_BUFFER, vbo_vertices);
     glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, 0, (GLubyte*)NULL);
+
+    glGenBuffers (1, &vbo_colors);
+    glBindBuffer (GL_ARRAY_BUFFER, vbo_colors);
+    glBufferData (GL_ARRAY_BUFFER, 9 * sizeof (float), colors, GL_STATIC_DRAW);
+
+
+    string vertexSource = filetobuf("shader.vert");
+    string fragmentSource = filetobuf("shader.frag");
 
     const GLchar* vertexSourcep = vertexSource.c_str();
     const GLchar* fragmentSourcep = fragmentSource.c_str();
@@ -178,105 +218,116 @@ void simpleDraw(){
     glShaderSource (fs, 1, &fragmentSourcep, NULL);
     glCompileShader (fs);
 
-    unsigned int shader_programme = glCreateProgram ();
+    shader_programme = glCreateProgram();
     glAttachShader (shader_programme, fs);
     glAttachShader (shader_programme, vs);
+
+    //glBindAttribLocation(shader_programme, shaderAttribute, "vp");
+
     glLinkProgram (shader_programme);
 
+    const char* attribute_name;
+    attribute_name = "coord3d";
+    attribute_coord3d = glGetAttribLocation(shader_programme, attribute_name);
+    if (attribute_coord3d == -1) {
+        fprintf(stderr, "Could not bind attribute %s\n", attribute_name);
+    }
+    attribute_name = "v_color";
+    attribute_v_color = glGetAttribLocation(shader_programme, attribute_name);
+    if (attribute_v_color == -1) {
+        fprintf(stderr, "Could not bind attribute %s\n", attribute_name);
+    }
+    const char* uniform_name;
+    uniform_name = "MVP";
+    uniform_mvp = glGetUniformLocation(shader_programme, uniform_name);
+    if (uniform_mvp == -1) {
+        fprintf(stderr, "Could not bind uniform %s\n", uniform_name);
+    }
 
-    // wipe the drawing surface clear
-    glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glUseProgram (shader_programme);
-    glBindVertexArray (vao);
-    // draw points 0-3 from the currently bound VAO with current in-use shader
-    glDrawArrays (GL_TRIANGLES, 0, 3);
+
+    Graphical triangle(0);
+    Position p0;
+    p0.setX(-0.5f)->setY(0.0f)->setZ(0.0f);
+    triangle.setRelativePosition(p0);
+    scene.addObject(triangle);
 
 }
 
+void simpleDraw(){
+    // wipe the drawing surface clear
+    glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-// vertex coords array for glDrawArrays() =====================================
-// A cube has 6 sides and each side has 2 triangles, therefore, a cube consists
-// of 36 vertices (6 sides * 2 tris * 3 vertices = 36 vertices). And, each
-// vertex is 3 components (x,y,z) of floats, therefore, the size of vertex
-// array is 108 floats (36 * 3 = 108).
-GLfloat vertices1[] = { 1, 1, 1,  -1, 1, 1,  -1,-1, 1,      // v0-v1-v2 (front)
-                        -1,-1, 1,   1,-1, 1,   1, 1, 1,      // v2-v3-v0
+   float angle = glfwGetTime() * 45;  // 45° per second
+    glm::vec3 axis_z(0, 0, 1);
+    glm::mat4 anim = glm::rotate(glm::mat4(1.0f), angle, axis_z);
 
-                        1, 1, 1,   1,-1, 1,   1,-1,-1,      // v0-v3-v4 (right)
-                        1,-1,-1,   1, 1,-1,   1, 1, 1,      // v4-v5-v0
+    glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0, 0.0, -4.0));
+    glm::mat4 view = glm::lookAt(glm::vec3(0.0, 2.0, 0.0), glm::vec3(0.0, 0.0, -4.0), glm::vec3(0.0, 1.0, 0.0));
+    glm::mat4 projection = glm::perspective(45.0f, 4.0f/3.0f, 0.1f, 10.0f);
 
-                        1, 1, 1,   1, 1,-1,  -1, 1,-1,      // v0-v5-v6 (top)
-                        -1, 1,-1,  -1, 1, 1,   1, 1, 1,      // v6-v1-v0
+    glm::mat4 mvp = projection * view * model * anim;
 
-                        -1, 1, 1,  -1, 1,-1,  -1,-1,-1,      // v1-v6-v7 (left)
-                        -1,-1,-1,  -1,-1, 1,  -1, 1, 1,      // v7-v2-v1
+    glUseProgram (shader_programme);
+    glUniformMatrix4fv(uniform_mvp, 1, GL_FALSE, glm::value_ptr(mvp));
 
-                        -1,-1,-1,   1,-1,-1,   1,-1, 1,      // v7-v4-v3 (bottom)
-                        1,-1, 1,  -1,-1, 1,  -1,-1,-1,      // v3-v2-v7
+    glEnableVertexAttribArray(attribute_coord3d);
+    // Describe our vertices array to OpenGL (it can't guess its format automatically)
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
+    glVertexAttribPointer(
+                attribute_coord3d, // attribute
+                3,                 // number of elements per vertex, here (x,y,z)
+                GL_FLOAT,          // the type of each element
+                GL_FALSE,          // take our values as-is
+                0,                 // no extra data between each position
+                0                  // offset of first element
+                );
 
-                        1,-1,-1,  -1,-1,-1,  -1, 1,-1,      // v4-v7-v6 (back)
-                        -1, 1,-1,   1, 1,-1,   1,-1,-1 };    // v6-v5-v4
+    glEnableVertexAttribArray(attribute_v_color);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_colors);
+    glVertexAttribPointer(
+                attribute_v_color, // attribute
+                3,                 // number of elements per vertex, here (R,G,B)
+                GL_FLOAT,          // the type of each element
+                GL_FALSE,          // take our values as-is
+                0,                 // no extra data between each position
+                0                  // offset of first element
+                );
 
-// normal array
-GLfloat normals1[]  = { 0, 0, 1,   0, 0, 1,   0, 0, 1,      // v0-v1-v2 (front)
-                        0, 0, 1,   0, 0, 1,   0, 0, 1,      // v2-v3-v0
+    /* Push each element in buffer_vertices to the vertex shader */
+    glBindVertexArray (vao);
+//    int size;  glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
+//    glDrawElements(GL_TRIANGLES, size/sizeof(GLushort), GL_UNSIGNED_SHORT, 0);
 
-                        1, 0, 0,   1, 0, 0,   1, 0, 0,      // v0-v3-v4 (right)
-                        1, 0, 0,   1, 0, 0,   1, 0, 0,      // v4-v5-v0
+    // draw points 0-3 from the currently bound VAO with current in-use shader
+    glDrawArrays (GL_TRIANGLES, 0, 3);
 
-                        0, 1, 0,   0, 1, 0,   0, 1, 0,      // v0-v5-v6 (top)
-                        0, 1, 0,   0, 1, 0,   0, 1, 0,      // v6-v1-v0
-
-                        -1, 0, 0,  -1, 0, 0,  -1, 0, 0,      // v1-v6-v7 (left)
-                        -1, 0, 0,  -1, 0, 0,  -1, 0, 0,      // v7-v2-v1
-
-                        0,-1, 0,   0,-1, 0,   0,-1, 0,      // v7-v4-v3 (bottom)
-                        0,-1, 0,   0,-1, 0,   0,-1, 0,      // v3-v2-v7
-
-                        0, 0,-1,   0, 0,-1,   0, 0,-1,      // v4-v7-v6 (back)
-                        0, 0,-1,   0, 0,-1,   0, 0,-1 };    // v6-v5-v4
-
-// color array
-GLfloat colors1[]   = { 1, 1, 1,   1, 1, 0,   1, 0, 0,      // v0-v1-v2 (front)
-                        1, 0, 0,   1, 0, 1,   1, 1, 1,      // v2-v3-v0
-
-                        1, 1, 1,   1, 0, 1,   0, 0, 1,      // v0-v3-v4 (right)
-                        0, 0, 1,   0, 1, 1,   1, 1, 1,      // v4-v5-v0
-
-                        1, 1, 1,   0, 1, 1,   0, 1, 0,      // v0-v5-v6 (top)
-                        0, 1, 0,   1, 1, 0,   1, 1, 1,      // v6-v1-v0
-
-                        1, 1, 0,   0, 1, 0,   0, 0, 0,      // v1-v6-v7 (left)
-                        0, 0, 0,   1, 0, 0,   1, 1, 0,      // v7-v2-v1
-
-                        0, 0, 0,   0, 0, 1,   1, 0, 1,      // v7-v4-v3 (bottom)
-                        1, 0, 1,   1, 0, 0,   0, 0, 0,      // v3-v2-v7
-
-                        0, 0, 1,   0, 0, 0,   0, 1, 0,      // v4-v7-v6 (back)
-                        0, 1, 0,   0, 1, 1,   0, 0, 1 };    // v6-v5-v4
+    glDisableVertexAttribArray(attribute_coord3d);
+    glDisableVertexAttribArray(attribute_v_color);
+    //    for (std::set<Graphical>::iterator it=scene.getObjectsIteratorBegin(); it!=scene.getObjectsIteratorEnd(); ++it) {
+    //        //std::cout << "pos= " << ((Graphical)*it).getPosition().toString() << endl;
+    //        glm::mat4 Model = Util::transformMatrixToGlmMat4(((Graphical)*it).getModel());
+    //        Model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0, 0.0, -4.0));
+    //        glm::mat4 MVP = Projection * View * Model;
+    //        glUniformMatrix4fv(ProjectionModelviewMatrix_Loc, 1, GL_FALSE, glm::value_ptr(MVP));
+    //    }
 
 
-void drawCube(float x)
+
+}
+
+void loadData()
 {
-    glEnableClientState(GL_NORMAL_ARRAY);
-    glEnableClientState(GL_COLOR_ARRAY);
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glNormalPointer(GL_FLOAT, 0, normals1);
-    glColorPointer(3, GL_FLOAT, 0, colors1);
-    glVertexPointer(3, GL_FLOAT, 0, vertices1);
+    GLfloat vertexData[] = {0, 0.5, 0,  0.5, -0.5, 0,   -0.5, -0.5, 0};
+    GLubyte indexData[] = {0, 1, 2};
 
-    glPushMatrix();
-    glLoadIdentity();
-    //glTranslatef(2, 2, 0);                  // move to upper-right corner
-    glScalef(10,10,10);
+    glGenBuffers(1, &myVBO);
+    glGenBuffers(1, &myIndices);
 
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glBindBuffer(GL_ARRAY_BUFFER, myVBO);
+    glBufferData(GL_ARRAY_BUFFER, 9 *sizeof(GLfloat), vertexData, GL_STATIC_DRAW);
 
-    glPopMatrix();
-
-    glDisableClientState(GL_VERTEX_ARRAY);  // disable vertex arrays
-    glDisableClientState(GL_COLOR_ARRAY);
-    glDisableClientState(GL_NORMAL_ARRAY);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, myIndices);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * sizeof(GLubyte), indexData, GL_STATIC_DRAW);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -306,40 +357,6 @@ void initGL()
     glClearDepth(1.0f);                         // 0 is near, 1 is far
     glDepthFunc(GL_LEQUAL);
 }
-
-void loadData()
-{
-    GLfloat vertexData[] = {0, 0.5, 0,  0.5, -0.5, 0,   -0.5, -0.5, 0};
-    GLubyte indexData[] = {0, 1, 2};
-
-    glGenBuffers(1, &myVBO);
-    glGenBuffers(1, &myIndices);
-
-    glBindBuffer(GL_ARRAY_BUFFER, myVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, myIndices);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexData), indexData, GL_STATIC_DRAW);
-}
-
-void drawScene()
-{
-    glLoadIdentity();
-    glTranslatef(0, 0, 0);
-    //glRotatef(rotZ, 0, 0, 1);
-    glScalef(0.2f,0.2f,0.2f);
-
-    glColor3f(1, 0, 0);
-
-    glBindBuffer(GL_ARRAY_BUFFER, myVBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, myIndices);
-
-    glEnableVertexAttribArray(0);                                               //ENABLE VERTEX POSITION
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);      // VERTEX POSITION POINTER
-
-    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_BYTE, 0);
-}
-
 
 void AppManager::start(int *argcp, char **argv) throw (Exception) {
 
@@ -382,50 +399,20 @@ void AppManager::start(int *argcp, char **argv) throw (Exception) {
         throw Exception();
     }
 
-    //loadData();
-        prepareDrawWithShader();
+    simpleLoad();
+    //prepareDrawWithShader();
 
+    /* Render here */
+    float ratio;
+    int width, height;
+    glfwGetFramebufferSize(window, &width, &height);
+    ratio = width / (float) height;
+    glViewport(0, 0, width, height);
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window)) {
-        /* Render here */
-        float ratio;
-        int width, height;
-        glfwGetFramebufferSize(window, &width, &height);
-        ratio = width / (float) height;
-        glViewport(0, 0, width, height);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        gluPerspective(45.0, ratio, 0.1f, 100.0f);
-        glMatrixMode(GL_MODELVIEW);
-        //glLoadIdentity();
-        //        glRotatef((float) glfwGetTime() * 50.f, 0.f, 0.f, 1.f);
 
-        //        glBegin(GL_TRIANGLES);
-        //        glColor3f(0.f, 1.f, 0.f);
-        //        glVertex3f(-0.3f, -0.4f, 0.f);
-        //        glColor3f(0.f, 1.f, 0.f);
-        //        glVertex3f(0.3f, -0.4f, 0.f);
-        //        glColor3f(0.f, 1.f, 0.f);
-        //        glVertex3f(0.f, 0.3f, 0.f);
-        //        glEnd();
-
-        //        glRotatef(-(float) glfwGetTime() * 50.f, 0.f, 0.f, 1.f);
-        //        glTranslatef(-0.5f, 0.f, 0.f);
-        //        glBegin(GL_TRIANGLES);
-        //        glColor3f(1.f, 0.f, 0.f);
-        //        glVertex3f(-0.2f, -0.2f, 0.f);
-        //        glColor3f(0.f, 1.f, 0.f);
-        //        glVertex3f(0.2f, -0.2f, 0.f);
-        //        glColor3f(0.f, 0.f, 1.f);
-        //        glVertex3f(0.f, 0.2f, 0.f);
-        //        glEnd();
-
-        //drawCube(0);
-        drawWithShader();
-        //simpleDraw();
-
-        //drawScene();
+        simpleDraw();
+        //        drawWithShader();
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);

@@ -1,5 +1,11 @@
 #version 130
-in vec3 vp;
-void main () {
-  gl_Position = vec4 (vp, 1.0);
+
+attribute vec3 coord3d;
+attribute vec3 v_color;
+uniform mat4 MVP;
+varying vec3 f_color;
+
+void main(void) {
+  gl_Position = MVP * vec4(coord3d, 1.0);
+  f_color = v_color;
 }

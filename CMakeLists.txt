@@ -1,3 +1,4 @@
+option(tp1_build_tests "Build all of tp1 unit tests." OFF)
 cmake_minimum_required(VERSION 2.8)
 project(tp1)
 
@@ -13,3 +14,21 @@ aux_source_directory(. SRC_LIST)
 
 add_executable(${PROJECT_NAME} ${SRC_LIST} shader.vert shader.frag)
 target_link_libraries(${PROJECT_NAME} ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY} ${GLFW_LIBRARIES} ${GLEW_LIBRARIES} X11 Xxf86vm Xrandr pthread Xi)
+
+if (tp1_build_tests)
+    enable_testing()
+    add_executable(${PROJECT_NAME}_test
+        tests/SceneTest.cpp
+        Scene.cpp
+        Graphical.cpp
+        Position.cpp
+        TransformMatrix.cpp
+        Util.cpp
+)
+    target_link_libraries(${PROJECT_NAME}_test
+        pthread)
+    target_link_libraries(${PROJECT_NAME}_test
+        /home/pablo/ufmg/cg/tp1/gtestbuild/libgtest.a
+        /home/pablo/ufmg/cg/tp1/gtestbuild/libgtest_main.a pthread)
+    add_test(all-${PROJECT_NAME}-tests ${PROJECT_NAME}_test)
+endif()
