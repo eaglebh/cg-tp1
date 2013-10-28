@@ -6,7 +6,7 @@
 class FalcoPeregrinus : public Bird
 {
 public:
-    FalcoPeregrinus();
+    FalcoPeregrinus(long id);
 };
 
 #endif // FALCOPEREGRINUS_H

@@ -9,9 +9,10 @@ OpenGLUtil::OpenGLUtil()
 
 void OpenGLUtil::prepareGraphInfo(Graphical::GraphicalInfo &gi)
 {
-    float *verts = gi.vertices;
-    float *rgb = gi.colors;
-    const short unsigned int *idxs = gi.indices;
+    vector<float> &verts = gi.vertices;
+    unsigned int &numVertices = gi.numVertices;
+    vector<float> &rgb = gi.colors;
+    vector<short unsigned int> &idxs = gi.indices;
     unsigned int &shaderProgram = gi.shaderProgram;
     unsigned int &vboVertices = gi.vboVertices;
     unsigned int &vboColors = gi.vboColors;
@@ -20,21 +21,24 @@ void OpenGLUtil::prepareGraphInfo(Graphical::GraphicalInfo &gi)
 
     glGenBuffers (1, &vboVertices);
     glBindBuffer (GL_ARRAY_BUFFER, vboVertices);
-    glBufferData (GL_ARRAY_BUFFER, 9 * sizeof (float), verts, GL_STATIC_DRAW);
-
-    glGenVertexArrays (1, &vao);
-    glBindVertexArray (vao);
-    glEnableVertexAttribArray (0);
-    glBindBuffer (GL_ARRAY_BUFFER, vboVertices);
-    glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, 0, (GLubyte*)NULL);
+    glBufferData (GL_ARRAY_BUFFER, verts.size() * sizeof(verts[0]), &verts[0], GL_STATIC_DRAW);
 
     glGenBuffers (1, &vboColors);
     glBindBuffer (GL_ARRAY_BUFFER, vboColors);
-    glBufferData (GL_ARRAY_BUFFER, 9 * sizeof (float), rgb, GL_STATIC_DRAW);
+    glBufferData (GL_ARRAY_BUFFER, rgb.size() * sizeof(rgb[0]), &rgb[0], GL_STATIC_DRAW);
+
+    glGenVertexArrays (1, &vao);
+    glBindVertexArray (vao);
+    glBindBuffer (GL_ARRAY_BUFFER, vboVertices);
+    glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, 0, (GLubyte*)NULL);
+    glEnableVertexAttribArray (0);
+    glBindBuffer (GL_ARRAY_BUFFER, vboColors);
+    glVertexAttribPointer (1, 3, GL_FLOAT, GL_FALSE, 0, (GLubyte*)NULL);
+    glEnableVertexAttribArray (1);
 
     glGenBuffers(1, &ebo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * sizeof(GLushort), idxs, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, idxs.size() * sizeof(idxs[0]), &idxs[0], GL_STATIC_DRAW);
 
     string vertexSource = Util::filetobuf("shader.vert");
     string fragmentSource = Util::filetobuf("shader.frag");
@@ -67,17 +71,19 @@ void OpenGLUtil::prepareGraphInfo(Graphical::GraphicalInfo &gi)
     }
 }
 
-void OpenGLUtil::renderGraphInfo(Graphical::GraphicalInfo &gi)
+void OpenGLUtil::renderGraphInfo(Graphical *graphical)
 {
+    Graphical::GraphicalInfo &gi = Graphical::graphicalObjects[graphical->getType()];
+    unsigned int &numVertices = gi.numVertices;
     unsigned int &shaderProgram = gi.shaderProgram;
     unsigned int &vboVertices = gi.vboVertices;
     unsigned int &vboColors = gi.vboColors;
     unsigned int &vao = gi.vao;
     unsigned int &ebo = gi.ebo;
 
-//    float angle = glfwGetTime() * 45;  // 45° per second
-//    glm::vec3 axis_z(0, 0, 1);
-//    glm::mat4 anim = glm::rotate(glm::mat4(1.0f), angle, axis_z);
+    float angle = glfwGetTime() * 45;  // 45° per second
+    glm::vec3 axis_z(0, 0, 1);
+    glm::mat4 anim = glm::rotate(glm::mat4(1.0f), angle, axis_z);
 
     glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(-1.0, 0.0, -4.0));
     glm::mat4 view = glm::lookAt(glm::vec3(0.0, 2.0, 0.0), glm::vec3(0.0, 0.0, -4.0), glm::vec3(0.0, 1.0, 0.0));
@@ -114,15 +120,14 @@ void OpenGLUtil::renderGraphInfo(Graphical::GraphicalInfo &gi)
     /* Push each element in buffer_vertices to the vertex shader */
     glBindVertexArray (vao);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    //    int size;  glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
-    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, NULL);
 
-//    // draw points 0-3 from the currently bound VAO with current in-use shader
-//    model = glm::translate(glm::mat4(1.0f), glm::vec3(1.0, 0.0, -4.0));
-//    anim = glm::rotate(glm::mat4(1.0f), -angle, axis_z);
-//    mvp = projection * view * model * anim;
-//    glUniformMatrix4fv(Graphical::uniformMvp, 1, GL_FALSE, glm::value_ptr(mvp));
-//    glDrawArrays (GL_TRIANGLES, 0, 3);
+    anim = glm::rotate(glm::mat4(1.0f), angle, axis_z);
+    model  = graphical->getModel().getMatrix();
+    mvp = projection * view * model * anim;
+    glUniformMatrix4fv(Graphical::uniformMvp, 1, GL_FALSE, glm::value_ptr(mvp));
+
+    int size;  glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
+    glDrawElements(GL_TRIANGLES, size/sizeof(GLushort), GL_UNSIGNED_SHORT, 0);
 
     glDisableVertexAttribArray(Graphical::attributeCoord3d);
     glDisableVertexAttribArray(Graphical::attributeVColor);

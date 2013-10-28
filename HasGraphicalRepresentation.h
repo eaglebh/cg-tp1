@@ -9,6 +9,8 @@ public:
     HasGraphicalRepresentation(long id, string type);
     void setPosition(Position position);
 
+    Graphical &getGraphical();
+
 protected:
     Graphical graphical;
 };

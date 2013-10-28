@@ -9,3 +9,8 @@ void HasGraphicalRepresentation::setPosition(Position position)
 {
     graphical.setRelativePosition(position);
 }
+Graphical& HasGraphicalRepresentation::getGraphical()
+{
+    return graphical;
+}
+

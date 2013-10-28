@@ -12,7 +12,7 @@ class OpenGLUtil
 public:
     OpenGLUtil();
     static void prepareGraphInfo(Graphical::GraphicalInfo &gi);
-    static void renderGraphInfo(Graphical::GraphicalInfo &gi);
+    static void renderGraphInfo(Graphical *graphical);
 };
 
 #endif // OPENGLUTIL_H

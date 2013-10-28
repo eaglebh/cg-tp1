@@ -6,16 +6,25 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 map<string, Graphical::GraphicalInfo> Graphical::graphicalObjects;
+map<string, list<Graphical*> > Graphical::iGraphicals;
 unsigned int Graphical::attributeCoord3d = 0;
 unsigned int Graphical::attributeVColor = 1;
 unsigned int Graphical::uniformMvp = 0;
 
+
+string Graphical::getType() const
+{
+    return type;
+}
+
 Graphical::Graphical(long id, string type, Graphical *parent) :
     id(id),
     type(type),
-    parent(parent)
+    parent(parent),
+    forwardspeed(0)
 {
-
+    graphicalObjects[type].graphicals.insert(this);
+    iGraphicals[type].push_back(this);
 }
 
 void Graphical::setParent(Graphical *parent)
@@ -31,6 +40,7 @@ Position Graphical::getPosition()
 Position Graphical::setRelativePosition(Position position)
 {
     localPosition = position;
+    model.translate(localPosition);
 }
 
 void Graphical::incForwardSpeed()
@@ -46,6 +56,11 @@ void Graphical::decForwardSpeed()
 float Graphical::getForwardSpeed()
 {
     return forwardspeed;
+}
+
+void Graphical::scale(float factor)
+{
+    model.scale(factor);
 }
 
 void Graphical::translate(Position position)
@@ -70,24 +85,28 @@ void Graphical::rotate(AxisVector axis, float angle)
     model.rotate(axis, angle);
 }
 
-const TransformMatrix Graphical::getModel()
+TransformMatrix Graphical::getModel()
 {
     return model;
 }
 
-void Graphical::setVertices(const string name, float *vertices)
+void Graphical::setVertices(float *vertices, unsigned int numVertices)
 {
-    graphicalObjects[name].vertices = vertices;
+    vector<float> &vec = graphicalObjects[type].vertices;
+    vec.insert( vec.end(), vertices, vertices+numVertices );
+    graphicalObjects[type].numVertices = numVertices;
 }
 
-void Graphical::setColors(const string name, float *colors)
+void Graphical::setColors(float *colors, unsigned int size)
 {
-    graphicalObjects[name].colors = colors;
+    vector<float> &vec = graphicalObjects[type].colors;
+    vec.insert( vec.end(), colors, colors+size );
 }
 
-void Graphical::setIndices(const string name, const short unsigned int *indices)
+void Graphical::setIndices(const short unsigned int *indices, unsigned int size)
 {
-    graphicalObjects[name].indices = indices;
+    vector<short unsigned int> &vec = graphicalObjects[type].indices;
+    vec.insert( vec.end(), indices, indices+size );
 }
 
 void Graphical::prepareForDraw()
@@ -104,6 +123,6 @@ void Graphical::draw()
     for( map<string, GraphicalInfo>::iterator it=graphicalObjects.begin(); it!=graphicalObjects.end(); ++it)
     {
         string name = (*it).first;
-        OpenGLUtil::renderGraphInfo(graphicalObjects[name]);
+        OpenGLUtil::renderGraphInfo(this);
     }
 }

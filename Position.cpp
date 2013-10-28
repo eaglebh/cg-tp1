@@ -3,7 +3,9 @@
 #include <sstream>
 #include <glm/gtc/swizzle.hpp>
 
-Position::Position(){
+Position::Position():
+    position(glm::vec4(0.0f))
+{
 
 }
 
