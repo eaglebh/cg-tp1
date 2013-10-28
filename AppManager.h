@@ -19,6 +19,7 @@ public:
     void start(int *argcp, char **argv) throw(Exception);
     static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
     static void windowResize(GLFWwindow *window, int width, int height);
+    void loadObjFile();
 };
 
 #endif // APPMANAGER_H

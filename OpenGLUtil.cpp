@@ -123,7 +123,7 @@ void OpenGLUtil::renderGraphInfo(Graphical *graphical)
 
     anim = glm::rotate(glm::mat4(1.0f), angle, axis_z);
     model  = graphical->getModel().getMatrix();
-    mvp = projection * view * model * anim;
+    mvp = projection * view * model;
     glUniformMatrix4fv(Graphical::uniformMvp, 1, GL_FALSE, glm::value_ptr(mvp));
 
     int size;  glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);

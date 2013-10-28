@@ -3,6 +3,8 @@
 #include "Scene.h"
 #include "FalcoPeregrinus.h"
 
+#include "ObjLoader.h"
+
 #include <string>
 #include <iostream>
 #include <fstream>
@@ -138,33 +140,33 @@ bool printou = false;
 void prepareScene() {
     Position p;
 
-//    Graphical triangle1(1, "TRIANGLE");
-//    triangle1.setVertices(verts, sizeof(verts)/sizeof(verts[0]));
-//    triangle1.setColors(rgb, sizeof(rgb)/sizeof(rgb[0]));
-//    triangle1.setIndices(idxs, sizeof(idxs)/sizeof(idxs[0]));
-//    p.setX(-2.0f)->setY(0.0f)->setZ(-4.0f);
-//    triangle1.setRelativePosition(p);
+    //    Graphical triangle1(1, "TRIANGLE");
+    //    triangle1.setVertices(verts, sizeof(verts)/sizeof(verts[0]));
+    //    triangle1.setColors(rgb, sizeof(rgb)/sizeof(rgb[0]));
+    //    triangle1.setIndices(idxs, sizeof(idxs)/sizeof(idxs[0]));
+    //    p.setX(-2.0f)->setY(0.0f)->setZ(-4.0f);
+    //    triangle1.setRelativePosition(p);
 
-//    Graphical triangle2(2, "TRIANGLE");
-//    triangle2.setVertices(verts, sizeof(verts)/sizeof(verts[0]));
-//    triangle2.setColors(rgb, sizeof(rgb)/sizeof(rgb[0]));
-//    triangle2.setIndices(idxs, sizeof(idxs)/sizeof(idxs[0]));
-//    p.setX(1.0f)->setY(0.0f)->setZ(-4.0f);
-//    triangle2.setRelativePosition(p);
+    //    Graphical triangle2(2, "TRIANGLE");
+    //    triangle2.setVertices(verts, sizeof(verts)/sizeof(verts[0]));
+    //    triangle2.setColors(rgb, sizeof(rgb)/sizeof(rgb[0]));
+    //    triangle2.setIndices(idxs, sizeof(idxs)/sizeof(idxs[0]));
+    //    p.setX(1.0f)->setY(0.0f)->setZ(-4.0f);
+    //    triangle2.setRelativePosition(p);
 
-//    Graphical triangle3(3, "TRIANGLE");
-//    triangle3.setVertices(verts, sizeof(verts)/sizeof(verts[0]));
-//    triangle3.setColors(rgb, sizeof(rgb)/sizeof(rgb[0]));
-//    triangle3.setIndices(idxs, sizeof(idxs)/sizeof(idxs[0]));
-//    p.setX(1.0f)->setY(1.0f)->setZ(-4.0f);
-//    triangle3.setRelativePosition(p);
+    //    Graphical triangle3(3, "TRIANGLE");
+    //    triangle3.setVertices(verts, sizeof(verts)/sizeof(verts[0]));
+    //    triangle3.setColors(rgb, sizeof(rgb)/sizeof(rgb[0]));
+    //    triangle3.setIndices(idxs, sizeof(idxs)/sizeof(idxs[0]));
+    //    p.setX(1.0f)->setY(1.0f)->setZ(-4.0f);
+    //    triangle3.setRelativePosition(p);
 
-//    Graphical triangle4(4, "TRIANGLE");
-//    triangle4.setVertices(verts, sizeof(verts)/sizeof(verts[0]));
-//    triangle4.setColors(rgb, sizeof(rgb)/sizeof(rgb[0]));
-//    triangle4.setIndices(idxs, sizeof(idxs)/sizeof(idxs[0]));
-//    p.setX(1.0f)->setY(-1.0f)->setZ(-4.0f);
-//    triangle4.setRelativePosition(p);
+    //    Graphical triangle4(4, "TRIANGLE");
+    //    triangle4.setVertices(verts, sizeof(verts)/sizeof(verts[0]));
+    //    triangle4.setColors(rgb, sizeof(rgb)/sizeof(rgb[0]));
+    //    triangle4.setIndices(idxs, sizeof(idxs)/sizeof(idxs[0]));
+    //    p.setX(1.0f)->setY(-1.0f)->setZ(-4.0f);
+    //    triangle4.setRelativePosition(p);
 
     Graphical cube1(6, "CUBE");
     cube1.setVertices(cube_vertices, sizeof(cube_vertices)/sizeof(cube_vertices[0]));
@@ -181,8 +183,8 @@ void prepareScene() {
     //    scene.addObject(triangle2);
     //    scene.addObject(triangle3);
     //    scene.addObject(triangle4);
-//    scene.addObject(cube1);
-        scene.addObject(falco.getGraphical());
+    //    scene.addObject(cube1);
+    scene.addObject(falco.getGraphical());
 
     //    for (std::set<Graphical>::iterator it=scene.getObjectsIteratorBegin(); it!=scene.getObjectsIteratorEnd(); ++it) {
     //        Graphical graphical = *it;
@@ -223,6 +225,15 @@ void AppManager::windowResize(GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
+
+void AppManager::loadObjFile()
+{
+    std::vector<glm::vec4> vertices;
+    std::vector<glm::vec3> normals; // Won't be used at the moment.
+    std::vector<GLushort> elements;
+    ObjLoader::loadObj("bird.obj", vertices, normals, elements);
+    cout << "res" << endl;
+}
 
 void AppManager::start(int *argcp, char **argv) throw (Exception) {
 
@@ -269,6 +280,9 @@ void AppManager::start(int *argcp, char **argv) throw (Exception) {
     int width, height;
     glfwGetFramebufferSize(window, &width, &height);
     glViewport(0, 0, width, height);
+
+    // Read our .obj file
+    loadObjFile();
 
     prepareScene();
 
