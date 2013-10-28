@@ -15,7 +15,7 @@ class ObjLoader
 {
 public:
     ObjLoader();
-    static void loadObj(const char *filename, vector<glm::vec4> &vertices, vector<glm::vec3> &normals, vector<GLushort> &elements);
+    static void loadObj(const char *filename, vector<float> &vertices, vector<float> &normals, vector<GLushort> &elements);
 };
 
 #endif // OBJLOADER_H

@@ -228,8 +228,8 @@ void AppManager::windowResize(GLFWwindow* window, int width, int height)
 
 void AppManager::loadObjFile()
 {
-    std::vector<glm::vec4> vertices;
-    std::vector<glm::vec3> normals; // Won't be used at the moment.
+    std::vector<float> vertices;
+    std::vector<float> normals; // Won't be used at the moment.
     std::vector<GLushort> elements;
     ObjLoader::loadObj("bird.obj", vertices, normals, elements);
     cout << "res" << endl;

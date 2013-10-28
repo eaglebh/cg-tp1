@@ -196,13 +196,13 @@ FalcoPeregrinus::FalcoPeregrinus(long id) :
         6, 7, 3,
       };
 
-    std::vector<glm::vec4> v_vertices;
-    std::vector<glm::vec3> normals; // Won't be used at the moment.
+    std::vector<float> v_vertices;
+    std::vector<float> normals; // Won't be used at the moment.
     std::vector<unsigned short> elements;
     ObjLoader::loadObj("bird.obj", v_vertices, normals, elements);
 
-//    graphical.setVertices(&v_vertices[0], v_vertices.size());
-//    graphical.setColors(colors, sizeof(colors)/sizeof(colors[0]));
-//    graphical.setIndices(&elements[0], elements.size());
+    graphical.setVertices(&v_vertices[0], v_vertices.size());
+    graphical.setColors(colors, sizeof(colors)/sizeof(colors[0]));
+    graphical.setIndices(&elements[0], elements.size());
 
 }
