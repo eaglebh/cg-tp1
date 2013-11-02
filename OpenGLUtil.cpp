@@ -102,7 +102,7 @@ void OpenGLUtil::renderGraphInfo(Graphical *graphical)
     glm::mat4 view = glm::lookAt(glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, 1.0, 0.0));
     glm::mat4 projection = glm::perspective(60.0f, 4.0f/3.0f, 0.1f, 100.0f);
 
-    glm::mat4 mvp = projection * view * model * anim;
+    glm::mat4 mvp = projection * view * model;
 
     glUseProgram (shaderProgram);
     glUniformMatrix4fv(Graphical::uniformMvp, 1, GL_FALSE, glm::value_ptr(mvp));

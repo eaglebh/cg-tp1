@@ -3,7 +3,6 @@
 
 #include "HasGraphicalRepresentation.h"
 
-
 class Tower : public HasGraphicalRepresentation
 {
 private:

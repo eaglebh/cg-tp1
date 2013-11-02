@@ -2,6 +2,7 @@
 
 #include "Scene.h"
 #include "FalcoPeregrinus.h"
+#include "Floor.h"
 
 #include "ObjLoader.h"
 
@@ -107,43 +108,16 @@ bool printou = false;
 void prepareScene() {
     Position p;
 
-    Graphical triangle1(1, "TRIANGLE");
-    triangle1.setVertices(verts, sizeof(verts)/sizeof(verts[0]));
-    triangle1.setColors(rgb, sizeof(rgb)/sizeof(rgb[0]));
-    triangle1.setIndices(idxs, sizeof(idxs)/sizeof(idxs[0]));
-    p.setX(-1.5f)->setY(-1.5f)->setZ(-4.0f);
-    triangle1.setRelativePosition(p);
-
-    Graphical triangle2(2, "TRIANGLE");
-    p.setX(-1.5f)->setY(1.5f)->setZ(-4.0f);
-    triangle2.setRelativePosition(p);
-
-    Graphical triangle3(3, "TRIANGLE");
-    p.setX(1.5f)->setY(1.5f)->setZ(-4.0f);
-    triangle3.setRelativePosition(p);
-
-    Graphical triangle4(4, "TRIANGLE");
-    p.setX(1.5f)->setY(-1.5f)->setZ(-4.0f);
-    triangle4.setRelativePosition(p);
-
-    Graphical cube1(6, "CUBE");
-    cube1.setVertices(cube_vertices, sizeof(cube_vertices)/sizeof(cube_vertices[0]));
-    cube1.setColors(cube_colors, sizeof(cube_colors)/sizeof(cube_colors[0]));
-    cube1.setIndices(cube_elements, sizeof(cube_elements)/sizeof(cube_elements[0]));
-    p.setX(0.0f)->setY(0.0f)->setZ(-4.0f);
-    cube1.setRelativePosition(p);
-    cube1.scale(0.5);
-
     FalcoPeregrinus falco(5);
     p.setX(0.0f)->setY(0.0f)->setZ(-4.0f);
     falco.setPosition(p);
 
-    scene.addObject(triangle1);
-    scene.addObject(triangle2);
-    scene.addObject(triangle3);
-    scene.addObject(triangle4);
-    scene.addObject(cube1);
-    //    scene.addObject(falco.getGraphical());
+    Floor floor(7);
+    p.setX(0.0f)->setY(0.0f)->setZ(0.0f);
+    floor.setPosition(p);
+
+    scene.addObject(falco.getGraphical());
+    scene.addObject(floor.getGraphical());
 
     Graphical::prepareForDraw();
 }
@@ -178,16 +152,6 @@ void initGL()
 void AppManager::windowResize(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
-}
-
-
-void AppManager::loadObjFile()
-{
-    std::vector<float> vertices;
-    std::vector<float> normals; // Won't be used at the moment.
-    std::vector<GLushort> elements;
-    ObjLoader::loadObj("bird.obj", vertices, normals, elements);
-    cout << "res" << endl;
 }
 
 void AppManager::start(int *argcp, char **argv) throw (Exception) {
@@ -235,9 +199,6 @@ void AppManager::start(int *argcp, char **argv) throw (Exception) {
     glViewport(0, 0, width, height);
 
     initGL();
-
-    // Read our .obj file
-    loadObjFile();
 
     prepareScene();
 
