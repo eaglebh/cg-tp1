@@ -13,6 +13,8 @@ public:
     OpenGLUtil();
     static void prepareGraphInfo(Graphical::GraphicalInfo &gi);
     static void renderGraphInfo(Graphical *graphical);
+    static void configShaders(Graphical::GraphicalInfo &gi);
+    static void printLog(GLuint object);
 };
 
 #endif // OPENGLUTIL_H

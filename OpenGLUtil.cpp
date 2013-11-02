@@ -7,39 +7,9 @@ OpenGLUtil::OpenGLUtil()
 {
 }
 
-void OpenGLUtil::prepareGraphInfo(Graphical::GraphicalInfo &gi)
+void OpenGLUtil::configShaders(Graphical::GraphicalInfo &gi)
 {
-    vector<float> &verts = gi.vertices;
-    unsigned int &numVertices = gi.numVertices;
-    vector<float> &rgb = gi.colors;
-    vector<short unsigned int> &idxs = gi.indices;
     unsigned int &shaderProgram = gi.shaderProgram;
-    unsigned int &vboVertices = gi.vboVertices;
-    unsigned int &vboColors = gi.vboColors;
-    unsigned int &vao = gi.vao;
-    unsigned int &ebo = gi.ebo;
-
-    glGenBuffers (1, &vboVertices);
-    glBindBuffer (GL_ARRAY_BUFFER, vboVertices);
-    glBufferData (GL_ARRAY_BUFFER, verts.size() * sizeof(verts[0]), &verts[0], GL_STATIC_DRAW);
-
-    glGenBuffers (1, &vboColors);
-    glBindBuffer (GL_ARRAY_BUFFER, vboColors);
-    glBufferData (GL_ARRAY_BUFFER, rgb.size() * sizeof(rgb[0]), &rgb[0], GL_STATIC_DRAW);
-
-    glGenVertexArrays (1, &vao);
-    glBindVertexArray (vao);
-    glBindBuffer (GL_ARRAY_BUFFER, vboVertices);
-    glVertexAttribPointer (0, 3, GL_FLOAT, GL_FALSE, 0, (GLubyte*)NULL);
-    glEnableVertexAttribArray (0);
-    glBindBuffer (GL_ARRAY_BUFFER, vboColors);
-    glVertexAttribPointer (1, 3, GL_FLOAT, GL_FALSE, 0, (GLubyte*)NULL);
-    glEnableVertexAttribArray (1);
-
-    glGenBuffers(1, &ebo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, idxs.size() * sizeof(idxs[0]), &idxs[0], GL_STATIC_DRAW);
-
     string vertexSource = Util::filetobuf("shader.vert");
     string fragmentSource = Util::filetobuf("shader.frag");
 
@@ -58,10 +28,16 @@ void OpenGLUtil::prepareGraphInfo(Graphical::GraphicalInfo &gi)
     glAttachShader (shaderProgram, vs);
     glAttachShader (shaderProgram, fs);
 
-    glBindAttribLocation(shaderProgram, 0, "coord3d");
-    glBindAttribLocation(shaderProgram, 1, "v_color");
+    glBindAttribLocation(shaderProgram, Graphical::attributeCoord3d, "coord3d");
+    glBindAttribLocation(shaderProgram, Graphical::attributeVColor, "v_color");
 
     glLinkProgram (shaderProgram);
+    GLint link_ok = GL_FALSE;
+    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &link_ok);
+    if (!link_ok) {
+        fprintf(stderr, "glLinkProgram:");
+        printLog(shaderProgram);
+    }
 
     const char* uniform_name;
     uniform_name = "MVP";
@@ -71,64 +47,98 @@ void OpenGLUtil::prepareGraphInfo(Graphical::GraphicalInfo &gi)
     }
 }
 
-void OpenGLUtil::renderGraphInfo(Graphical *graphical)
+void OpenGLUtil::prepareGraphInfo(Graphical::GraphicalInfo &gi)
 {
-    Graphical::GraphicalInfo &gi = Graphical::graphicalObjects[graphical->getType()];
-    unsigned int &numVertices = gi.numVertices;
-    unsigned int &shaderProgram = gi.shaderProgram;
+    vector<float> &verts = gi.vertices;
+    vector<float> &rgb = gi.colors;
+    vector<short unsigned int> &idxs = gi.indices;
     unsigned int &vboVertices = gi.vboVertices;
     unsigned int &vboColors = gi.vboColors;
     unsigned int &vao = gi.vao;
     unsigned int &ebo = gi.ebo;
 
-    float angle = glfwGetTime() * 45;  // 45° per second
-    glm::vec3 axis_z(0, 0, 1);
+    glGenBuffers (1, &vboVertices);
+    glGenBuffers (1, &vboColors);
+    glGenBuffers(1, &ebo);
+
+    glGenVertexArrays (1, &vao);
+    glBindVertexArray (vao);
+
+    glBindBuffer (GL_ARRAY_BUFFER, vboVertices);
+    GLuint vertsSize = verts.size() * sizeof(verts[0]);
+    glBufferData (GL_ARRAY_BUFFER, vertsSize, &verts[0], GL_STATIC_DRAW);
+    glEnableVertexAttribArray (Graphical::attributeCoord3d);
+    glVertexAttribPointer (Graphical::attributeCoord3d, 3, GL_FLOAT, GL_FALSE, 0, (GLubyte*)NULL);
+
+    glBindBuffer (GL_ARRAY_BUFFER, vboColors);
+    GLuint rgbSize =rgb.size() * sizeof(rgb[0]);
+    glBufferData (GL_ARRAY_BUFFER, rgbSize, &rgb[0], GL_STATIC_DRAW);
+    glEnableVertexAttribArray (Graphical::attributeVColor);
+    glVertexAttribPointer (Graphical::attributeVColor, 3, GL_FLOAT, GL_FALSE, 0, (GLubyte*)NULL);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    GLuint idxsSize = idxs.size() * sizeof(idxs[0]);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, idxsSize, &idxs[0], GL_STATIC_DRAW);
+
+    // Bind back to the default state.
+    glBindVertexArray(0);
+    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
+    glBindBuffer(GL_ARRAY_BUFFER,0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+}
+
+void OpenGLUtil::renderGraphInfo(Graphical *graphical)
+{
+    Graphical::GraphicalInfo &gi = Graphical::graphicalObjects[graphical->getType()];
+    unsigned int &shaderProgram = gi.shaderProgram;
+    unsigned int &vao = gi.vao;
+
+    float angle = glfwGetTime() * 15;  // 45° per second
+    glm::vec3 axis_z(1, 1, 1);
     glm::mat4 anim = glm::rotate(glm::mat4(1.0f), angle, axis_z);
 
-    glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(-1.0, 0.0, -4.0));
-    glm::mat4 view = glm::lookAt(glm::vec3(0.0, 2.0, 0.0), glm::vec3(0.0, 0.0, -4.0), glm::vec3(0.0, 1.0, 0.0));
-    glm::mat4 projection = glm::perspective(45.0f, 4.0f/3.0f, 0.1f, 10.0f);
+    glm::mat4 model = graphical->getModel().getMatrix();
+    glm::mat4 view = glm::lookAt(glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, 1.0, 0.0));
+    glm::mat4 projection = glm::perspective(60.0f, 4.0f/3.0f, 0.1f, 100.0f);
 
-    glm::mat4 mvp = projection * view * model;
+    glm::mat4 mvp = projection * view * model * anim;
 
     glUseProgram (shaderProgram);
     glUniformMatrix4fv(Graphical::uniformMvp, 1, GL_FALSE, glm::value_ptr(mvp));
 
-    glEnableVertexAttribArray(Graphical::attributeCoord3d);
-    // Describe our vertices array to OpenGL (it can't guess its format automatically)
-    glBindBuffer(GL_ARRAY_BUFFER, vboVertices);
-    glVertexAttribPointer(
-                Graphical::attributeCoord3d, // attribute
-                3,                 // number of elements per vertex, here (x,y,z)
-                GL_FLOAT,          // the type of each element
-                GL_FALSE,          // take our values as-is
-                0,                 // no extra data between each position
-                0                  // offset of first element
-                );
-
-    glEnableVertexAttribArray(Graphical::attributeVColor);
-    glBindBuffer(GL_ARRAY_BUFFER, vboColors);
-    glVertexAttribPointer(
-                Graphical::attributeVColor, // attribute
-                3,                 // number of elements per vertex, here (R,G,B)
-                GL_FLOAT,          // the type of each element
-                GL_FALSE,          // take our values as-is
-                0,                 // no extra data between each position
-                0                  // offset of first element
-                );
-
     /* Push each element in buffer_vertices to the vertex shader */
     glBindVertexArray (vao);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 
-    anim = glm::rotate(glm::mat4(1.0f), angle, axis_z);
-    model  = graphical->getModel().getMatrix();
-    mvp = projection * view * model * anim;
-    glUniformMatrix4fv(Graphical::uniformMvp, 1, GL_FALSE, glm::value_ptr(mvp));
+//    anim = glm::rotate(glm::mat4(1.0f), angle, axis_z);
+//    model  = graphical->getModel().getMatrix();
+//    mvp = projection * view * model * anim;
+//    glUniformMatrix4fv(Graphical::uniformMvp, 1, GL_FALSE, glm::value_ptr(mvp));
 
     int size;  glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
     glDrawElements(GL_TRIANGLES, size/sizeof(GLushort), GL_UNSIGNED_SHORT, 0);
 
-    glDisableVertexAttribArray(Graphical::attributeCoord3d);
-    glDisableVertexAttribArray(Graphical::attributeVColor);
+}
+
+void OpenGLUtil::printLog(GLuint object)
+{
+    GLint log_length = 0;
+    if (glIsShader(object))
+        glGetShaderiv(object, GL_INFO_LOG_LENGTH, &log_length);
+    else if (glIsProgram(object))
+        glGetProgramiv(object, GL_INFO_LOG_LENGTH, &log_length);
+    else {
+        fprintf(stderr, "printlog: Not a shader or a program\n");
+        return;
+    }
+
+    char* log = (char*)malloc(log_length);
+
+    if (glIsShader(object))
+        glGetShaderInfoLog(object, log_length, NULL, log);
+    else if (glIsProgram(object))
+        glGetProgramInfoLog(object, log_length, NULL, log);
+
+    fprintf(stderr, "%s", log);
+    free(log);
 }

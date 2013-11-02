@@ -22,7 +22,6 @@ private:
     TransformMatrix model;
     struct GraphicalInfo {
         vector<float> vertices;
-        unsigned int numVertices;
         vector<float> colors;
         vector<short unsigned int> indices;
         unsigned int shaderProgram;
@@ -33,7 +32,6 @@ private:
         set<Graphical*> graphicals;
 
         GraphicalInfo():
-            numVertices(0),
             shaderProgram(0),
             vboVertices(0),
             vboColors(0),

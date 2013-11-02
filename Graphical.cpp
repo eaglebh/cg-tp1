@@ -94,7 +94,6 @@ void Graphical::setVertices(float *vertices, unsigned int numVertices)
 {
     vector<float> &vec = graphicalObjects[type].vertices;
     vec.insert( vec.end(), vertices, vertices+numVertices );
-    graphicalObjects[type].numVertices = numVertices;
 }
 
 void Graphical::setColors(float *colors, unsigned int size)
@@ -114,15 +113,16 @@ void Graphical::prepareForDraw()
     for( map<string, GraphicalInfo>::iterator it=graphicalObjects.begin(); it!=graphicalObjects.end(); ++it)
     {
         string name = (*it).first;
+        OpenGLUtil::configShaders(graphicalObjects[name]);
         OpenGLUtil::prepareGraphInfo(graphicalObjects[name]);
     }
 }
 
 void Graphical::draw()
 {
-    for( map<string, GraphicalInfo>::iterator it=graphicalObjects.begin(); it!=graphicalObjects.end(); ++it)
+//    for( map<string, GraphicalInfo>::iterator it=graphicalObjects.begin(); it!=graphicalObjects.end(); ++it)
     {
-        string name = (*it).first;
+//        string name = (*it).first;
         OpenGLUtil::renderGraphInfo(this);
     }
 }
